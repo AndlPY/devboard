@@ -7,6 +7,10 @@ class NoteRepository {
 
   List<Note>? _cache;
 
+  // Годинник Windows може повернути той самий час для двох швидких додавань,
+  // тому до часу в id додаємо лічильник.
+  int _seq = 0;
+
   Future<List<Note>> getAll() async => _cache ??= await _storage.readAll();
 
   Future<void> add(String text) async {
@@ -14,16 +18,13 @@ class NoteRepository {
     if (trimmed.isEmpty) {
       throw ArgumentError('Порожня нотатка не зберігається');
     }
-    final notes = await getAll();
     final now = DateTime.now();
     final note = Note(
-      // Годинник Windows може повернути той самий час для двох швидких
-      // додавань, тому до часу додаємо номер нотатки.
-      id: '${now.microsecondsSinceEpoch}-${notes.length}',
+      id: '${now.microsecondsSinceEpoch}-${_seq++}',
       text: trimmed,
       createdAt: now,
     );
-    _cache = [...notes, note];
+    _cache = [...await getAll(), note];
     await _storage.writeAll(_cache!);
   }
 
