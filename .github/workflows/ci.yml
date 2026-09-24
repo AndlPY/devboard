@@ -1,0 +1,29 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: web
+          - os: windows-latest
+            target: windows
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: domain і presentation без платформних залежностей
+        shell: bash
+        run: >-
+          ! grep -rnE "dart:io|dart:html|dart:js_interop|package:web|Platform\.|kIsWeb" lib/domain lib/presentation
+          && ! grep -rn "package:flutter" lib/domain
+      - run: flutter analyze
+      - run: flutter test
+      - run: flutter build ${{ matrix.target }}
