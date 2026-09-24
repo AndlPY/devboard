@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../data/note_repository.dart';
 import '../domain/note.dart';
@@ -102,6 +103,7 @@ class _NotesPageState extends State<NotesPage> {
     return Scaffold(
       appBar: AppBar(title: const Text('DevBoard')),
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
             padding: const EdgeInsets.all(12),
@@ -115,10 +117,19 @@ class _NotesPageState extends State<NotesPage> {
             child: Row(
               children: [
                 Expanded(
-                  child: TextField(
-                    controller: _input,
-                    decoration: const InputDecoration(hintText: 'Нова нотатка'),
-                    onSubmitted: (_) => _add(),
+                  // Поле багаторядкове, щоб довгий текст переносився, а Enter додає нотатку.
+                  child: CallbackShortcuts(
+                    bindings: {
+                      const SingleActivator(LogicalKeyboardKey.enter): _add,
+                    },
+                    child: TextField(
+                      controller: _input,
+                      minLines: 1,
+                      maxLines: 5,
+                      decoration: const InputDecoration(
+                        hintText: 'Нова нотатка',
+                      ),
+                    ),
                   ),
                 ),
                 IconButton(
